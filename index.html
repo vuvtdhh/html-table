@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+    <title>Document</title>
+    <style>
+        #table {
+            table-layout: fixed;
+            width: 500px;
+        }
+
+        table td {
+            position: relative;
+            /*  */
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        table td:focus-within {
+            border: var(--bs-border-width) solid #86b7fe !important;
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, .25);
+        }
+
+        table td input {
+            position: absolute;
+            display: block;
+            top: 0;
+            left: 0;
+            margin: 0;
+            padding: .5rem !important;
+            box-sizing: border-box;
+            width: 100%;
+            /* max-height: 100%; */
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+        }
+
+        .border-right {
+            border-right-color: #86b7fe;
+        }
+    </style>
+</head>
+
+<body>
+    <table class="table table-bordered m-5" id="table">
+        <thead>
+            <tr>
+                <th scope="col" style="width: 50px;">#</th>
+                <th scope="col" style="width: 100px;">First</th>
+                <th scope="col" style="width: 200px;">Last</th>
+                <th scope="col" style="width: 200px;">Handle</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- <tr>
+                <td>1</td>
+                <td>Mark</td>
+                <td>Otto</td>
+                <td>fat</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Jacob</td>
+                <td>Thornton</td>
+                <td>fat</td>
+            </tr>
+            <tr>
+                <th>3</th>
+                <td>Larry</td>
+                <td>Simp</td>
+                <td>@twitter</td>
+            </tr> -->
+        </tbody>
+    </table>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm"
+        crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        let data = [
+            { id: 1, first: 'Vũ', last: 'Văn', handle: '1' },
+            { id: 2, first: 'Mark', last: 'Otto', handle: '2' },
+            { id: 3, first: 'Jacob', last: 'Thornton', handle: '3' },
+        ];
+
+        data.forEach(function (element) {
+            var tr = $('<tr>');
+            var id_td = $('<td>').text(element.id).attr('tabindex', -1);
+            var first_td = $('<td>').text(element.first).attr('tabindex', -1);
+            var last_td = $('<td>').text(element.last).attr('tabindex', -1);
+            var handle_td = $('<td>').text(element.handle).attr('tabindex', -1);
+            tr.append(id_td, first_td, last_td, handle_td).attr('tabindex', -1);
+            $('#table tbody').append(tr);
+        });
+
+        function td_init($element) {
+            var value = $element.text();
+            var $input = $('<input>')
+                .addClass('form-control')
+                .attr('type', 'text')
+                .val(value)
+                .on('focusout', function (e) {
+                    if ($(this).parent().prev().length) {
+                        $(this).parent().prev().removeClass('border-right');
+                    }
+                    $(this).parent().text($(this).val());
+                })
+                .on('keydown', function (e) {
+                    e.stopPropagation();
+                    if (e.key === 'Enter' || e.key === 'Escape') {
+                        $(this).parent().focus();
+                    } else if (e.key === 'Tab' && !e.shiftKey || e.ctrlKey && e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        if ($(this).parent().next().length) {
+                            td_init($(this).parent().next());
+                        } else if ($(this).closest('tr').next().length) {
+                            td_init($(this).closest('tr').next().children().first());
+                        }
+                    } else if (e.key === 'Tab' && e.shiftKey ||  e.ctrlKey && e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        if ($(this).parent().prev().length) {
+                            td_init($(this).parent().prev());
+                        } else if ($(this).closest('tr').prev().length) {
+                            td_init($(this).closest('tr').prev().children().last());
+                        }
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        var currentRowIndex = $(this).closest('tr').index();
+                        if (currentRowIndex > 0) {
+                            td_init($(this).closest('tr').prev().children().eq($(this).parent().index()));
+                        }
+                    } else if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        var currentRowIndex = $(this).closest('tr').index();
+                        if (currentRowIndex < $(this).closest('table').find('tr').length - 1) {
+                            td_init($(this).closest('tr').next().children().eq($(this).parent().index()));
+                        }
+                    }
+                })
+                .on('change', function(e){
+
+                });
+            $element.append($input);
+            $input.focus();
+        }
+        $("#table td").on('dblclick', function (e) {
+            td_init($(this));
+        });
+        $("#table td").on('keydown', function (e) {
+            e.preventDefault();
+            if (e.key === 'Enter') {
+                td_init($(this));
+            } else if (e.key === 'Tab' && !e.shiftKey || e.key === 'ArrowRight') {
+                if ($(this).next().length) {
+                    $(this).next().focus();
+                } else if ($(this).closest('tr').next().length) {
+                    $(this).closest('tr').next().children().first().focus();
+                }
+            } else if (e.key === 'Tab' && e.shiftKey || e.key === 'ArrowLeft') {
+                if ($(this).prev().length) {
+                    $(this).prev().focus();
+                } else if ($(this).closest('tr').prev().length) {
+                    $(this).closest('tr').prev().children().last().focus();
+                }
+            } else if (e.key === 'ArrowUp') {
+                var currentRowIndex = $(this).closest('tr').index();
+                if (currentRowIndex > 0) {
+                    $(this).closest('tr').prev().children().eq($(this).index()).focus();
+                }
+            } else if (e.key === 'ArrowDown') {
+                var currentRowIndex = $(this).closest('tr').index();
+                if (currentRowIndex < $(this).closest('table').find('tr').length - 1) {
+                    $(this).closest('tr').next().children().eq($(this).index()).focus();
+                }
+            }
+        });
+
+        $('#table td').on('focus focusin', function (e) {
+            if ($(this).prev().length) {
+                $(this).prev().addClass('border-right');
+            }
+        })
+        $('#table td').on('focusout', function (e) {
+            if ($(this).prev().length) {
+                $(this).prev().removeClass('border-right');
+            }
+        })
+    </script>
+</body>
+
+</html>
